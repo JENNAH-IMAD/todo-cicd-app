@@ -61,7 +61,7 @@ jobs:
       
       # Étape 5 : Upload du rapport de couverture (optionnel)
       - name: Upload coverage report
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v2
         with:
           name: coverage-report
           path: coverage/
@@ -95,7 +95,7 @@ jobs:
       # Étape 4 : Extraire les métadonnées Docker (tags, labels)
       - name: Extraire metadata Docker
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v
         with:
           images: ${{ env.DOCKER_IMAGE }}
           tags: |
