@@ -95,7 +95,7 @@ jobs:
       # Étape 4 : Extraire les métadonnées Docker (tags, labels)
       - name: Extraire metadata Docker
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v3
         with:
           images: ${{ env.DOCKER_IMAGE }}
           tags: |
