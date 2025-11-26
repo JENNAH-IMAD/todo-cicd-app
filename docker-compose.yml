@@ -1,0 +1,36 @@
+# docker-compose.yml
+# Fichier pour tester l'application en local avec Docker
+
+version: '3.8'
+
+services:
+  # Service de l'application React
+  todo-app:
+    # Nom du container
+    container_name: todo-cicd-app
+    
+    # Builder l'image depuis le Dockerfile local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    # Mapper le port 80 du container vers le port 3000 de la machine hôte
+    ports:
+      - "3000:80"
+    
+    # Redémarrage automatique en cas d'échec
+    restart: unless-stopped
+    
+    # Variables d'environnement (optionnel)
+    environment:
+      - NODE_ENV=production
+    
+    # Étiquettes pour identifier le container
+    labels:
+      - "app=todo-cicd"
+      - "environment=development"
+
+# Optionnel : définir un réseau personnalisé
+networks:
+  default:
+    name: todo-network

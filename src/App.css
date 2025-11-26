@@ -1,0 +1,160 @@
+/* src/App.css */
+
+.App {
+  text-align: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.App-header {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  color: white;
+}
+
+h1 {
+  margin: 20px 0 10px;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.App-header > p {
+  margin-bottom: 30px;
+  opacity: 0.9;
+}
+
+/* Section d'input */
+.input-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.todo-input {
+  flex: 1;
+  padding: 12px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 25px;
+  outline: none;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.add-button {
+  padding: 12px 30px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.add-button:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0,0,0,0.3);
+}
+
+/* Container des tâches */
+.todos-container {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.empty-message {
+  padding: 40px;
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+/* Liste des tâches */
+.todo-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.todo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  color: #333;
+  padding: 15px 20px;
+  margin-bottom: 10px;
+  border-radius: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s;
+}
+
+.todo-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.todo-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+  text-align: left;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.todo-content span {
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+/* Style pour les tâches complétées */
+.completed {
+  text-decoration: line-through;
+  opacity: 0.6;
+  color: #999;
+}
+
+.delete-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  transition: transform 0.2s;
+}
+
+.delete-button:hover {
+  transform: scale(1.2);
+}
+
+/* Statistiques */
+.stats {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.stats p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+}
