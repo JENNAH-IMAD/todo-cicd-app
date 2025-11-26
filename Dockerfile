@@ -47,6 +47,6 @@ CMD ["nginx", "-g", "daemon off;"]
 # ============================================
 # LABELS pour les métadonnées de l'image
 # ============================================
-LABEL maintainer="votre-email@example.com"
+LABEL maintainer="jennahi690@gmail.com"
 LABEL description="Todo App React avec CI/CD"
 LABEL version="1.0"
