@@ -118,7 +118,7 @@ Ajoutez-les dans **Repo → Settings → Secrets and variables → Actions**.
 ---
 
 ## 📄 Licence
-Projet éducatif. Ajoutez la licence de votre choix (MIT, Apache 2.0…) si nécessaire.
+Projet éducatif.
 
 ---
 
