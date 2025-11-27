@@ -1,30 +1,25 @@
 # .github/workflows/ci-cd.yml
-# Pipeline CI/CD complet pour l'application React
+# Pipeline CI/CD avec versioning automatique
 
-name: CI/CD Pipeline
+name: CI/CD Pipeline avec Versioning
 
 # ============================================
 # DÉCLENCHEURS (Triggers)
 # ============================================
 on:
-  # Se déclenche sur les push vers la branche main
   push:
     branches: [ main ]
-  
-  # Se déclenche sur les Pull Requests vers main
   pull_request:
     branches: [ main ]
-  
-  # Permet de déclencher manuellement depuis l'interface GitHub
   workflow_dispatch:
 
 # ============================================
 # VARIABLES D'ENVIRONNEMENT GLOBALES
 # ============================================
 env:
-  # Nom de l'image Docker (remplacer par votre username Docker Hub)
-  DOCKER_IMAGE: bluekayn11/todo-cicd-app
-  DOCKER_TAG: latest
+  DOCKER_USERNAME: bluekayn11
+  IMAGE_NAME: todocicd
+  PORT: 8080
 
 # ============================================
 # JOBS (Tâches du pipeline)
@@ -39,27 +34,21 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # Étape 1 : Récupérer le code source
       - name: Checkout du code
         uses: actions/checkout@v3
       
-      # Étape 2 : Configurer Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          # Mettre en cache les dépendances npm pour accélérer
           cache: 'npm'
       
-      # Étape 3 : Installer les dépendances
       - name: Installer les dépendances
         run: npm ci
       
-      # Étape 4 : Lancer les tests
       - name: Exécuter les tests
         run: npm test -- --coverage --watchAll=false
       
-      # Étape 5 : Upload du rapport de couverture (optionnel)
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
@@ -67,93 +56,125 @@ jobs:
           path: coverage/
 
   # ==========================================
-  # JOB 2 : BUILD DE L'IMAGE DOCKER
+  # JOB 2 : BUILD AVEC VERSIONING
   # ==========================================
   build:
-    name: Build Docker Image
-    # Ce job dépend du succès du job "test"
+    name: Build Docker avec Versioning
     needs: test
     runs-on: ubuntu-latest
     
     steps:
-      # Étape 1 : Checkout du code
       - name: Checkout du code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       
-      # Étape 2 : Configurer Docker Buildx (pour builds multi-plateformes)
+      # Lire la version actuelle
+      - name: Lire la version actuelle
+        id: read_version
+        run: |
+          if [ -f version.txt ]; then
+            CURRENT_VERSION=$(cat version.txt)
+          else
+            CURRENT_VERSION=0
+          fi
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "✓ Version actuelle: V$CURRENT_VERSION"
+      
+      # Incrémenter la version
+      - name: Incrémenter la version
+        id: increment_version
+        run: |
+          CURRENT_VERSION=${{ steps.read_version.outputs.current_version }}
+          NEW_VERSION=$((CURRENT_VERSION + 1))
+          echo $NEW_VERSION > version.txt
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "✓ Nouvelle version: V$NEW_VERSION"
+      
+      # Commit et push de la nouvelle version
+      - name: Commit de la nouvelle version
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add version.txt
+          git diff --quiet && git diff --staged --quiet || git commit -m "🔖 Version bump to V${{ steps.increment_version.outputs.new_version }}"
+          git push || echo "Nothing to push"
+      
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v2
       
-      # Étape 3 : Se connecter à Docker Hub
       - name: Login vers Docker Hub
         uses: docker/login-action@v2
         with:
-          # Utiliser les secrets GitHub pour les credentials
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       
-      # Étape 4 : Extraire les métadonnées Docker (tags, labels)
-      - name: Extraire metadata Docker
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ env.DOCKER_IMAGE }}
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
-      
-      # Étape 5 : Builder et pusher l'image Docker
-      - name: Build et Push de l'image Docker
+      # Build et push avec le tag versionné
+      - name: Build et Push de l'image versionnée
         uses: docker/build-push-action@v4
         with:
           context: .
-          # Pusher uniquement si c'est la branche main
           push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          # Utiliser le cache pour accélérer les builds
+          tags: |
+            ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}v${{ steps.increment_version.outputs.new_version }}
+            ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          labels: |
+            version=v${{ steps.increment_version.outputs.new_version }}
+            commit=${{ github.sha }}
+            maintainer=jennahi690@gmail.com
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      
+      # Afficher le résumé
+      - name: Résumé du build
+        run: |
+          echo "🎉 Build terminé avec succès !"
+          echo "📦 Image: ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}v${{ steps.increment_version.outputs.new_version }}"
+          echo "🔖 Version: V${{ steps.increment_version.outputs.new_version }}"
+          echo "🔌 Port: ${{ env.PORT }}"
+      
+      # Créer un tag Git
+      - name: Créer un tag Git
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git tag v${{ steps.increment_version.outputs.new_version }} || echo "Tag already exists"
+          git push origin v${{ steps.increment_version.outputs.new_version }} || echo "Tag already pushed"
 
   # ==========================================
-  # JOB 3 : DÉPLOIEMENT (Optionnel)
+  # JOB 3 : DÉPLOIEMENT
   # ==========================================
   deploy:
     name: Déploiement
-    # Ce job dépend du succès du job "build"
     needs: build
     runs-on: ubuntu-latest
-    # Exécuter uniquement sur la branche main
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
-      # Étape 1 : Checkout du code
       - name: Checkout du code
         uses: actions/checkout@v3
       
-      # Étape 2 : Exemple de déploiement (à adapter selon votre infrastructure)
-      - name: Simuler le déploiement
+      - name: Lire la version
+        id: get_version
         run: |
-          echo "🚀 Déploiement de l'application..."
-          echo "Image Docker : ${{ env.DOCKER_IMAGE }}:latest"
-          echo "✅ Déploiement réussi !"
+          VERSION=$(cat version.txt)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
       
-      # Pour un vrai déploiement, vous pourriez :
-      # - SSH vers votre serveur et faire docker pull + docker run
-      # - Déployer vers AWS ECS / Azure / Google Cloud
-      # - Utiliser Kubernetes avec kubectl
-      # - Déployer vers Heroku, Vercel, etc.
-      
-      # Exemple avec SSH (décommenter et adapter) :
-      # - name: Deploy to server via SSH
-      #   uses: appleboy/ssh-action@master
-      #   with:
-      #     host: ${{ secrets.SERVER_HOST }}
-      #     username: ${{ secrets.SERVER_USER }}
-      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     script: |
-      #       docker pull ${{ env.DOCKER_IMAGE }}:latest
-      #       docker stop todo-app || true
-      #       docker rm todo-app || true
-      #       docker run -d --name todo-app -p 80:80 ${{ env.DOCKER_IMAGE }}:latest
+      - name: Afficher les informations de déploiement
+        run: |
+          echo "========================================"
+          echo "🚀 DÉPLOIEMENT RÉUSSI"
+          echo "========================================"
+          echo "📦 Image Docker Hub:"
+          echo "   bluekayn11/todocicdv${{ steps.get_version.outputs.version }}"
+          echo ""
+          echo "🔖 Version: V${{ steps.get_version.outputs.version }}"
+          echo "🔌 Port: 8080"
+          echo ""
+          echo "📝 Pour déployer localement:"
+          echo "   docker pull bluekayn11/todocicdv${{ steps.get_version.outputs.version }}"
+          echo "   docker run -d -p 8080:80 --name todo-app bluekayn11/todocicdv${{ steps.get_version.outputs.version }}"
+          echo ""
+          echo "🌐 URL: http://localhost:8080"
+          echo "========================================"
