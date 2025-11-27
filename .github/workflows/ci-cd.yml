@@ -177,4 +177,4 @@ jobs:
           echo "   docker run -d -p 8060:80 --name todo-app bluekayn11/todocicd:v${{ steps.get_version.outputs.version }}"
           echo ""
           echo "🌐 URL: http://localhost:8060"
-          echo "========================================"
+          echo "========================================="
