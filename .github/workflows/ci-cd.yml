@@ -19,7 +19,7 @@ on:
 env:
   DOCKER_USERNAME: bluekayn11
   IMAGE_NAME: todocicd
-  PORT: 8080
+  PORT: 8060  # ✅ CHANGEMENT ICI
 
 # ============================================
 # JOBS (Tâches du pipeline)
@@ -111,14 +111,14 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       
-      # Build et push avec le tag versionné
+      # ✅ CHANGEMENT ICI : Format du tag
       - name: Build et Push de l'image versionnée
         uses: docker/build-push-action@v4
         with:
           context: .
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: |
-            ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}v${{ steps.increment_version.outputs.new_version }}
+            ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:v${{ steps.increment_version.outputs.new_version }}
             ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
           labels: |
             version=v${{ steps.increment_version.outputs.new_version }}
@@ -131,7 +131,7 @@ jobs:
       - name: Résumé du build
         run: |
           echo "🎉 Build terminé avec succès !"
-          echo "📦 Image: ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}v${{ steps.increment_version.outputs.new_version }}"
+          echo "📦 Image: ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:v${{ steps.increment_version.outputs.new_version }}"
           echo "🔖 Version: V${{ steps.increment_version.outputs.new_version }}"
           echo "🔌 Port: ${{ env.PORT }}"
       
@@ -167,14 +167,14 @@ jobs:
           echo "🚀 DÉPLOIEMENT RÉUSSI"
           echo "========================================"
           echo "📦 Image Docker Hub:"
-          echo "   bluekayn11/todocicdv${{ steps.get_version.outputs.version }}"
+          echo "   bluekayn11/todocicd:v${{ steps.get_version.outputs.version }}"
           echo ""
           echo "🔖 Version: V${{ steps.get_version.outputs.version }}"
-          echo "🔌 Port: 8080"
+          echo "🔌 Port: 8060"
           echo ""
           echo "📝 Pour déployer localement:"
-          echo "   docker pull bluekayn11/todocicdv${{ steps.get_version.outputs.version }}"
-          echo "   docker run -d -p 8080:80 --name todo-app bluekayn11/todocicdv${{ steps.get_version.outputs.version }}"
+          echo "   docker pull bluekayn11/todocicd:v${{ steps.get_version.outputs.version }}"
+          echo "   docker run -d -p 8060:80 --name todo-app bluekayn11/todocicd:v${{ steps.get_version.outputs.version }}"
           echo ""
-          echo "🌐 URL: http://localhost:8080"
+          echo "🌐 URL: http://localhost:8060"
           echo "========================================"

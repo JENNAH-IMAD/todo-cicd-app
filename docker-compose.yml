@@ -14,9 +14,9 @@ services:
       context: .
       dockerfile: Dockerfile
     
-    # Mapper le port 80 du container vers le port 8080 de la machine hôte
+    # ✅ CHANGEMENT ICI : Port 8060
     ports:
-      - "8080:80"
+      - "8060:80"
     
     # Redémarrage automatique en cas d'échec
     restart: unless-stopped
